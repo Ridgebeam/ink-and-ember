@@ -149,7 +149,8 @@
       <div id="main-stats-preview" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; font-size:0.7rem; color: #aaa;"></div>
     </div>
     <div style="display:flex; flex-direction:column; gap:5px;">
-      <button class="btn edit-only" onclick="generateDiscordCard()">📢 Character Dossier</button>
+      <button class="btn edit-only" onclick="generateDiscordCard()">📢 ANSI Dossier</button>
+      <button class="btn edit-only" style="background: #5865F2; color: white;" onclick="dispatchToDiscord()">🚀 File in Discord</button>
       <button class="btn edit-only" style="background: var(--war-purple); color: white;" onclick="prepareVisualArtifact()">✨ Render Artifact</button>
       <button class="btn edit-only" onclick="generateShareLink()">🔗 Share Journal</button>
       <button id="exit-shared" class="btn" style="display:none; background:#600; color:white;" onclick="window.location.href=window.location.pathname">🚪 Exit View</button>
@@ -317,6 +318,11 @@
       <section id="technical" class="panel">
         <h3 style="font-family:'Cinzel';">Technical Records</h3>
         <div class="edit-only">
+            <div style="background:rgba(88,101,242,0.1); padding:15px; border:1px solid #5865F2; margin-bottom:15px;">
+              <h4 style="font-family:'Cinzel'; color:#5865F2;">Discord Integration</h4>
+              <input type="password" id="in-webhook" placeholder="Discord Webhook URL" onchange="updateChar('webhookUrl', this.value)">
+              <small style="color:#888; display:block; margin-top:-5px; margin-bottom:10px;">Required for 'File in Discord' function. Stored locally.</small>
+            </div>
             <textarea id="in-plugins" placeholder="Active Plugins List..." rows="4" onchange="updateChar('plugins', this.value)"></textarea>
             <textarea id="in-ui" placeholder="UI layout export strings..." rows="4" style="font-family:monospace; font-size:0.7rem;" onchange="updateChar('uiLayouts', this.value)"></textarea>
             <input type="text" id="in-map" placeholder="Cartography Map URL..." onchange="updateChar('mapUrl', this.value)">
@@ -398,7 +404,7 @@
   const virtues = ["Valour", "Zeal", "Confidence", "Honour", "Loyalty", "Determination", "Justice"];
 
   let data = {
-    profile: { name: "New Hero", fullTitle: "The Unnamed", race: "Race", class: "Class", level: 1, img: "", bio: "", theme: "default", status: "Resting", address: "None", playstyle: "RP'er", mount: "None", mapUrl: "", plugins: "", uiLayouts: "", morale: 0, power: 0 },
+    profile: { name: "New Hero", fullTitle: "The Unnamed", race: "Race", class: "Class", level: 1, img: "", bio: "", theme: "default", status: "Resting", address: "None", playstyle: "RP'er", mount: "None", mapUrl: "", plugins: "", uiLayouts: "", morale: 0, power: 0, webhookUrl: "" },
     war: { rank: "None", points: 0, commendations: 0, medals: [] },
     role: { title: "Citizen", hierarchy: "Member", duties: [] },
     stats: {}, virtues: [], gallery: [],
@@ -457,6 +463,7 @@
       document.getElementById('in-plugins').value = p.plugins || "";
       document.getElementById('in-ui').value = p.uiLayouts || "";
       document.getElementById('in-map').value = p.mapUrl || "";
+      document.getElementById('in-webhook').value = p.webhookUrl || "";
     } else {
       document.getElementById('view-profile').innerText = `TITLE: ${p.fullTitle}\nMOUNT: ${p.mount}\nHOME: ${p.address}\n\n${p.bio}`;
       document.getElementById('view-profile').style.display = 'block';
@@ -488,44 +495,73 @@
     document.getElementById('map-frame').src = p.mapUrl || "";
   }
 
+  // UPDATED: Clean Piped Ledger Style for Copy/Paste
   function generateDiscordCard() {
-    const p = data.profile; const r = data.role; const s = data.stats;
-    const getBar = (val) => { 
-      const num = parseInt(val) || 0; 
-      const filled = Math.min(5, Math.max(0, Math.floor(num / 20))); 
-      return "■".repeat(filled) + "□".repeat(5 - filled); 
+    const { profile: p, role: r, stats: s } = data;
+    const esc = '\u001b';
+    const gold = (t) => `${esc}[1;33m${t}${esc}[0m`;
+    const gray = (t) => `${esc}[1;30m${t}${esc}[0m`;
+    const white = (t) => `${esc}[1;37m${t}${esc}[0m`;
+    const blue = (t) => `${esc}[1;34m${t}${esc}[0m`;
+    const pipe = gray("|");
+    const div = gray("------------------------------------------");
+
+    let card = `[​​​​​](${p.img || ''})\`\`\`ansi\n${gold("🖋️ THE SCHOLAR'S LEDGER")}\n${div}\n`;
+    card += `${white(p.name.padEnd(15))} ${pipe} ${blue(r.title)}\n`;
+    card += `${white((p.race + " " + p.class).padEnd(15))} ${pipe} ${white("LV " + p.level)}\n${div}\n`;
+    
+    const row = (l1, v1, l2, v2, c1, c2) => `${c1(l1.padEnd(4))} ${white(v1.toString().padEnd(5))} ${pipe} ${c2(l2.padEnd(4))} ${white(v2.toString())}\n`;
+    card += row("MGT", s.MGT, "AGI", s.AGI, (t)=>`${esc}[1;31m${t}${esc}[0m`, (t)=>`${esc}[1;32m${t}${esc}[0m`);
+    card += row("VIT", s.VIT, "WIL", s.WIL, (t)=>`${esc}[1;34m${t}${esc}[0m`, (t)=>`${esc}[1;35m${t}${esc}[0m`);
+    card += row("FAT", s.FAT, "P.M", s["Physical Mastery"] || 0, (t)=>`${esc}[1;36m${t}${esc}[0m`, gold);
+    card += `${div}\n${gray("*Recorded in the Scholar's Journal*")}\n\`\`\``;
+    
+    openModal("📢 Copy Ledger Code", "Paste into Discord for a clean text table.", card);
+  }
+
+  // NEW: Rich Embed Dispatcher
+  async function dispatchToDiscord() {
+    if (!data.profile.webhookUrl) {
+        alert("Please enter a Discord Webhook URL in the 'Technical' panel first.");
+        showPanel('technical', document.querySelector('[onclick*="technical"]'));
+        return;
+    }
+
+    const { profile: p, role: r, stats: s } = data;
+    const payload = {
+        username: "The Scholar's Archive",
+        avatar_url: "https://imgur.com/iAEONaH.jpeg",
+        embeds: [{
+            title: `📜 Ledger Record: ${p.name}`,
+            description: p.bio ? p.bio.substring(0, 500) : "No history recorded.",
+            thumbnail: { url: p.img || "https://via.placeholder.com/120" },
+            color: 12951641,
+            fields: [
+                { name: "Identity", value: `Level ${p.level} ${p.race} ${p.class}`, inline: true },
+                { name: "Rank", value: `${r.hierarchy} ${r.title}`, inline: true },
+                { name: "Status", value: `📍 ${p.status || 'Active'}`, inline: true },
+                { 
+                    name: "⚔️ Attributes", 
+                    value: `\`MGT: ${s.MGT}\` | \`AGI: ${s.AGI}\` | \`VIT: ${s.VIT}\` | \`WIL: ${s.WIL}\` | \`FAT: ${s.FAT}\``,
+                    inline: false 
+                }
+            ],
+            footer: { text: "Ink & Ember Mercantile Official Record" },
+            timestamp: new Date().toISOString()
+        }]
     };
-    const historySnippet = p.bio ? p.bio.substring(0, 300).replace(/\n/g, ' ') + (p.bio.length > 300 ? '...' : '') : 'A tale yet to be told...';
-    const dutiesList = (r.duties && r.duties.length > 0) ? r.duties.map(d => `[1;34m⁃[0m [1;37m${d}[0m`).join('\n') : "[1;30m⁃ No duties assigned.[0m";
-    const activeMissions = data.missions ? data.missions.filter(m => m.s === 'OPEN') : [];
-    const missionsList = (activeMissions.length > 0) ? activeMissions.slice(0, 3).map(m => `[1;34m⁃[0m [1;37m${m.t}[0m`).join('\n') : "[1;30m⁃ No active missions.[0m";
 
-    const card = `[​​​​​](${p.img || ''})\`\`\`ansi
-[1;33m📜 CHARACTER DOSSIER: ${p.name.toUpperCase()}[0m
-[1;30m──────────────────────────────────────[0m
-[1;37mSTATUS:[0m    📍 [1;32m${p.status || 'Resting'}[0m
-[1;37mRANK:[0m       [1;34m${r.hierarchy}[0m | [1;34m${r.title}[0m
-[1;37mPLAYSTYLE:[0m [1;36m${p.playstyle}[0m | [1;37mLEVEL:[0m [1;33m${p.level}[0m
-[1;37mIDENTITY:[0m  [1;35m${p.race} ${p.class}[0m
-[1;37mHOME:[0m       [1;30m${p.address || 'Traveler'}[0m
-
-[1;33m⚔️ CORE ATTRIBUTES[0m
-[1;31m[MGT][0m [1;37m${(s.MGT || 0).toString().padEnd(3)}[0m [1;30m[[0m[1;31m${getBar(s.MGT)}[1;30m][0m    [1;32m[AGI][0m [1;37m${(s.AGI || 0).toString().padEnd(3)}[0m [1;30m[[0m[1;32m${getBar(s.AGI)}[1;30m][0m
-[1;34m[VIT][0m [1;37m${(s.VIT || 0).toString().padEnd(3)}[0m [1;30m[[0m[1;34m${getBar(s.VIT)}[1;30m][0m    [1;35m[WIL][0m [1;37m${(s.WIL || 0).toString().padEnd(3)}[0m [1;30m[[0m[1;35m${getBar(s.WIL)}[1;30m][0m
-[1;36m[FAT][0m [1;37m${(s.FAT || 0).toString().padEnd(3)}[0m [1;30m[[0m[1;36m${getBar(s.FAT)}[1;30m][0m
-
-[1;33m🤝 ASSIGNED DUTIES[0m
-${dutiesList}
-
-[1;33m🏹 ACTIVE MISSIONS[0m
-${missionsList}
-
-[1;33m📖 HISTORY[0m
-[1;37m${historySnippet}[0m
-[1;30m──────────────────────────────────────[0m
-[1;33m*Recorded in the Scholar's Journal*[0m
-\`\`\``;
-    openModal("📢 Character Dossier Card", "Copy and paste into Discord.", card);
+    try {
+        const response = await fetch(p.webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (response.ok) alert("Dossier successfully transmitted to Discord!");
+        else alert("Discord error: Check if your Webhook URL is correct.");
+    } catch (err) {
+        alert("CORS/Connection Error. Browsers often block Webhooks from local files. Try using a CORS-unblocker extension or a Proxy.");
+    }
   }
 
   function prepareVisualArtifact() {
