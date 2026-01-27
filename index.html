@@ -243,47 +243,50 @@
             alert("Webhook Saved!");
         }
 
-        // --- UPDATED DISPATCH LOGIC (RICH EMBEDS) ---
-        async function dispatchToDiscord() {
-            if (!state.webhook) return alert("Please set a Webhook URL in Connection Settings!");
+        // NEW: Rich Embed Dispatcher
+  async function dispatchToDiscord() {
+    if (!data.profile.webhookUrl) {
+        alert("Please enter a Discord Webhook URL in the 'Technical' panel first.");
+        showPanel('technical', document.querySelector('[onclick*="technical"]'));
+        return;
+    }
 
-            const mod = state.currentModule;
-            let embed = {
-                color: 14833698, // #E25822
-                timestamp: new Date().toISOString(),
-                footer: { text: "Ink & Ember Mercantile Dispatch" },
-                thumbnail: { url: "https://cdn-icons-png.flaticon.com/512/3063/3063822.png" }
-            };
+    const { profile: p, role: r, stats: s } = data;
+    const payload = {
+        username: "The Scholar's Archive",
+        avatar_url: "https://imgur.com/iAEONaH.jpeg",
+        embeds: [{
+            title: `📜 Ledger Record: ${p.name}`,
+            description: p.bio ? p.bio.substring(0, 500) : "No history recorded.",
+            thumbnail: { url: p.img || "https://via.placeholder.com/120" },
+            color: 12951641,
+            fields: [
+                { name: "Identity", value: `Level ${p.level} ${p.race} ${p.class}`, inline: true },
+                { name: "Rank", value: `${r.hierarchy} ${r.title}`, inline: true },
+                { name: "Status", value: `📍 ${p.status || 'Active'}`, inline: true },
+                { 
+                    name: "⚔️ Attributes", 
+                    value: `\`MGT: ${s.MGT}\` | \`AGI: ${s.AGI}\` | \`VIT: ${s.VIT}\` | \`WIL: ${s.WIL}\` | \`FAT: ${s.FAT}\``,
+                    inline: false 
+                }
+            ],
+            footer: { text: "Ink & Ember Mercantile Official Record" },
+            timestamp: new Date().toISOString()
+        }]
+    };
 
-            if (mod === 'bulletin') {
-                embed.title = `📢 Bulletin: ${getVal('bul-title')}`;
-                embed.description = getVal('bul-msg');
-                embed.fields = [{ name: "Priority", value: document.getElementById('bul-urg').value, inline: true }];
-            } else if (mod === 'contract') {
-                embed.title = "📜 New Trade Contract";
-                embed.fields = [
-                    { name: "Merchant", value: getVal('m-name'), inline: true },
-                    { name: "Manifest", value: getVal('m-manifest') }
-                ];
-            } else if (mod === 'ledger') {
-                embed.title = "🖋️ Company Ledger Update";
-                embed.description = state.ledger.map(m => `**${m.name}** - ${m.role}`).join('\n');
-            } else if (mod === 'off-screen') {
-                embed.title = `🕯️ RP Scene: ${getVal('os-loc')}`;
-                embed.description = getVal('os-hook');
-                embed.color = 3447003; // Blue
-            }
-
-            try {
-                const response = await fetch(state.webhook, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ embeds: [embed] })
-                });
-                if (response.ok) alert("Rich Embed Dispatched!");
-                else alert("Failed to send. Check Webhook URL.");
-            } catch (err) { console.error(err); alert("Network Error."); }
-        }
+    try {
+        const response = await fetch(p.webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (response.ok) alert("Dossier successfully transmitted to Discord!");
+        else alert("Discord error: Check if your Webhook URL is correct.");
+    } catch (err) {
+        alert("CORS/Connection Error. Browsers often block Webhooks from local files. Try using a CORS-unblocker extension or a Proxy.");
+    }
+  }
 
         // --- ORIGINAL PREVIEW LOGIC (PRESERVED) ---
         function updateOutput() {
@@ -334,6 +337,7 @@ document.addEventListener('click', (e) => {
     </script>
 </body>
 </html>
+
 
 
 
