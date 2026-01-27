@@ -15,7 +15,6 @@
             --transition: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
         }
 
-        /* --- ALL ORIGINAL STYLES PRESERVED --- */
         * { box-sizing: border-box; }
         body { 
             background: var(--charcoal); 
@@ -124,16 +123,10 @@
             
             <div class="card">
                 <h4 style="color: var(--gold); margin-top: 0; font-size: 0.9rem; border-bottom: 1px solid var(--ember); padding-bottom: 5px;">The Merchant's Kit</h4>
-                <label>Recommended Plugins</label>
                 <ul class="res-list">
                     <li><a href="https://www.lotrointerface.com/downloads/info361-BuffBars.html" target="_blank">💪 BuffBars</a></li>
                     <li><a href="https://www.lotrointerface.com/downloads/info1085-PrimePlugin.html" target="_blank">💰 PrimePlugin</a></li>
                     <li><a href="https://www.lotrointerface.com/downloads/info532-MoorMap.html" target="_blank">🗺️ MoorMap</a></li>
-                </ul>
-                <label style="margin-top: 15px;">UI Layouts</label>
-                <ul class="res-list">
-                    <li><a href="#" onclick="alert('Layout file coming soon!')">🎨 Talathlans Layout</a></li>
-                    <li><a href="#" onclick="alert('Layout file coming soon!')">📥 Standard Merchant UI</a></li>
                 </ul>
             </div>
         </aside>
@@ -182,40 +175,22 @@
             const mod = state.currentModule;
 
             if (mod === 'settings') {
-                display.innerHTML = `
-                    <h2>Connection Settings</h2>
-                    <div class="input-group">
-                        <label>Discord Webhook URL</label>
-                        <input type="password" id="webhook-url" value="${state.webhook}" placeholder="https://discord.com/api/webhooks/...">
-                        <p style="font-size: 0.7rem; color: var(--gold);">Saved locally to your browser.</p>
-                        <button class="copy-btn" style="background:var(--ember)" onclick="saveSettings()">Save Configuration</button>
-                    </div>`;
+                display.innerHTML = `<h2>Connection Settings</h2><div class="input-group"><label>Discord Webhook URL</label><input type="password" id="webhook-url" value="${state.webhook}" placeholder="https://discord.com/api/webhooks/..."><button class="copy-btn" style="background:var(--ember); margin-top:10px" onclick="saveSettings()">Save Configuration</button></div>`;
             } else if (mod === 'bulletin') {
-                display.innerHTML = `
-                    <h2>The Bulletin Board</h2>
-                    <div class="input-group"><label>Announcement Title</label><input type="text" id="bul-title" oninput="updateOutput()"></div>
-                    <div class="input-group"><label>Message Content</label><textarea id="bul-msg" rows="4" oninput="updateOutput()"></textarea></div>
-                    <div class="input-group"><label>Urgency</label><select id="bul-urg" onchange="updateOutput()"><option value="info">General Info</option><option value="event">Upcoming Event</option><option value="alert">Critical Update</option></select></div>`;
+                display.innerHTML = `<h2>The Bulletin Board</h2><div class="input-group"><label>Announcement Title</label><input type="text" id="bul-title" oninput="updateOutput()"></div><div class="input-group"><label>Message Content</label><textarea id="bul-msg" rows="4" oninput="updateOutput()"></textarea></div><div class="input-group"><label>Urgency</label><select id="bul-urg" onchange="updateOutput()"><option value="info">General Info</option><option value="event">Upcoming Event</option><option value="alert">Critical Update</option></select></div>`;
             } else if (mod === 'ledger') {
-                display.innerHTML = `
-                    <h2>Merchant Ledger</h2>
-                    <input type="text" id="ledger-search" placeholder="Search roster..." oninput="renderLedgerList()" style="margin-bottom:10px;">
-                    <div class="ledger-list" id="ledger-items"></div>
-                    <hr style="border-color:#333">
-                    <div class="input-group" style="display:flex; gap:5px;"><input type="text" id="add-name" placeholder="Name"><input type="text" id="add-role" placeholder="Role"><button class="copy-btn" style="width:auto; margin:0;" onclick="addToLedger()">Add</button></div>`;
+                display.innerHTML = `<h2>Merchant Ledger</h2><input type="text" id="ledger-search" placeholder="Search roster..." oninput="renderLedgerList()" style="margin-bottom:10px;"><div class="ledger-list" id="ledger-items"></div><hr style="border-color:#333"><div class="input-group" style="display:flex; gap:5px;"><input type="text" id="add-name" placeholder="Name"><input type="text" id="add-role" placeholder="Role"><button class="copy-btn" style="width:auto; margin:0;" onclick="addToLedger()">Add</button></div>`;
                 renderLedgerList();
             } else if (mod === 'contract') {
-                display.innerHTML = `<h2>Trade Contract</h2><div class="input-group"><label>Merchant</label><input type="text" id="m-name" oninput="updateOutput()"></div><div class="input-group"><label>Manifest</label><textarea id="m-manifest" oninput="updateOutput()"></textarea></div>`;
+                display.innerHTML = `<h2>Trade Contract</h2><div class="input-group"><label>Merchant Name</label><input type="text" id="m-name" oninput="updateOutput()"></div><div class="input-group"><label>Contract Manifest</label><textarea id="m-manifest" rows="4" oninput="updateOutput()"></textarea></div>`;
             } else if (mod === 'storefront') {
-                display.innerHTML = `<h2>Storefront</h2><div class="input-group"><label>Item</label><input type="text" id="st-item" oninput="updateOutput()"></div><div class="input-group"><label>Quality</label><select id="st-qual" onchange="updateOutput()"><option value="standard">Standard</option><option value="crit">Critical Success (Purple)</option></select></div><div class="input-group"><label>Price</label><input type="text" id="st-price" oninput="updateOutput()"></div>`;
+                display.innerHTML = `<h2>Storefront</h2><div class="input-group"><label>Item</label><input type="text" id="st-item" oninput="updateOutput()"></div><div class="input-group"><label>Quality</label><select id="st-qual" onchange="updateOutput()"><option value="Standard">Standard</option><option value="Critical Success">Critical Success</option></select></div><div class="input-group"><label>Price</label><input type="text" id="st-price" oninput="updateOutput()"></div>`;
             } else if (mod === 'orders') {
-                display.innerHTML = `<h2>Orders</h2><input type="text" id="o-client" placeholder="Client" oninput="updateOutput()"><textarea id="o-details" oninput="updateOutput()"></textarea>`;
+                display.innerHTML = `<h2>Customer Orders</h2><div class="input-group"><label>Client</label><input type="text" id="o-client" oninput="updateOutput()"></div><div class="input-group"><label>Order Details</label><textarea id="o-details" rows="4" oninput="updateOutput()"></textarea></div>`;
+            } else if (mod === 'rp-info') {
+                display.innerHTML = `<h2>💡 RP Information</h2><div class="input-group"><label>Subject</label><input type="text" id="rp-topic" oninput="updateOutput()"></div><div class="input-group"><label>Details</label><textarea id="rp-body" rows="4" oninput="updateOutput()"></textarea></div>`;
             } else if (mod === 'off-screen') {
-                display.innerHTML = `
-                    <h2>Off-Screen RP Narrative</h2>
-                    <div class="input-group"><label>Scene Location</label><input type="text" id="os-loc" oninput="updateOutput()"></div>
-                    <div class="input-group"><label>Character Action</label><textarea id="os-hook" rows="4" oninput="updateOutput()"></textarea></div>
-                    <div class="input-group"><label>Atmosphere Tone</label><select id="os-tone" onchange="updateOutput()"><option value="neutral">Warm Amber</option><option value="serious">Dark Grey</option><option value="secret">Deep Blue</option></select></div>`;
+                display.innerHTML = `<h2>Off-Screen RP</h2><div class="input-group"><label>Location</label><input type="text" id="os-loc" oninput="updateOutput()"></div><div class="input-group"><label>Narrative Hook</label><textarea id="os-hook" rows="4" oninput="updateOutput()"></textarea></div>`;
             }
             updateOutput();
         }
@@ -233,116 +208,68 @@
             if(name && role) { state.ledger.push({name, role}); localStorage.setItem('ie_roster', JSON.stringify(state.ledger)); render(); }
         }
         function deleteMember(i) { state.ledger.splice(i, 1); localStorage.setItem('ie_roster', JSON.stringify(state.ledger)); render(); }
-        
-        function saveSettings() {
-            state.webhook = document.getElementById('webhook-url').value;
-            localStorage.setItem('ie_webhook', state.webhook);
-            alert("Webhook Saved!");
-        }
+        function saveSettings() { state.webhook = document.getElementById('webhook-url').value; localStorage.setItem('ie_webhook', state.webhook); alert("Webhook Saved!"); }
 
-        // --- UPDATED DISPATCHER FOR MERCHANT PORTAL ---
         async function dispatchToDiscord() {
-            if (!state.webhook) {
-                alert("Please enter a Discord Webhook URL in Connection Settings first.");
-                showModule('settings');
-                return;
-            }
-
-            let payload = {
-                username: "Ink & Ember Mercantile",
-                avatar_url: "https://imgur.com/iAEONaH.jpeg",
-                embeds: [{
-                    color: 14833698, // Ember color
-                    timestamp: new Date().toISOString(),
-                    footer: { text: "Ink & Ember Mercantile Official Portal" }
-                }]
-            };
-
+            if (!state.webhook) { alert("Please set a Webhook in Connection Settings."); return; }
+            let payload = { username: "Ink & Ember Mercantile", avatar_url: "https://imgur.com/iAEONaH.jpeg", embeds: [{ color: 14833698, timestamp: new Date().toISOString(), footer: { text: "Official Company Record" } }] };
             const mod = state.currentModule;
             const embed = payload.embeds[0];
 
-            // Logic to build the embed based on the active module
             if (mod === 'bulletin') {
                 embed.title = `📢 Bulletin: ${getVal('bul-title')}`;
                 embed.description = getVal('bul-msg');
-                embed.fields = [{ name: "Urgency", value: document.getElementById('bul-urg').value.toUpperCase() }];
             } else if (mod === 'ledger') {
-                embed.title = `🖋️ Company Roster Update`;
+                embed.title = `🖋️ Company Ledger Update`;
                 embed.description = state.ledger.map(m => `**${m.name}** - ${m.role}`).join('\n');
             } else if (mod === 'contract') {
-                embed.title = `📜 New Trade Contract`;
-                embed.fields = [
-                    { name: "Merchant", value: getVal('m-name'), inline: true },
-                    { name: "Manifest", value: getVal('m-manifest') }
-                ];
+                embed.title = `📜 Trade Contract: ${getVal('m-name')}`;
+                embed.description = getVal('m-manifest');
             } else if (mod === 'storefront') {
-                embed.title = `🏪 Storefront Listing`;
-                embed.fields = [
-                    { name: "Item", value: getVal('st-item'), inline: true },
-                    { name: "Price", value: getVal('st-price'), inline: true },
-                    { name: "Quality", value: document.getElementById('st-qual').value }
-                ];
+                embed.title = `🏪 Storefront: ${getVal('st-item')}`;
+                embed.fields = [{name: "Price", value: getVal('st-price'), inline: true}, {name: "Quality", value: getVal('st-qual'), inline: true}];
+            } else if (mod === 'orders') {
+                embed.title = `📦 New Order for ${getVal('o-client')}`;
+                embed.description = getVal('o-details');
+            } else if (mod === 'rp-info') {
+                embed.title = `💡 Lore Note: ${getVal('rp-topic')}`;
+                embed.description = getVal('rp-body');
             } else if (mod === 'off-screen') {
-                embed.title = `🕯️ Off-Screen Narrative Hook`;
+                embed.title = `🕯️ Off-Screen RP Hook`;
                 embed.description = getVal('os-hook');
-                embed.fields = [{ name: "Location", value: getVal('os-loc') }];
-            } else {
-                alert("This module cannot be dispatched as a Rich Embed.");
-                return;
+                embed.fields = [{name: "Location", value: getVal('os-loc')}];
             }
 
             try {
-                const response = await fetch(state.webhook, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                if (response.ok) alert("Module successfully dispatched to Discord!");
-                else alert("Discord error: Check your Webhook URL.");
-            } catch (err) {
-                alert("CORS Error. Use a CORS-unblocker extension or host this on GitHub Pages.");
-            }
+                const res = await fetch(state.webhook, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (res.ok) alert("Dispatched to Discord!");
+            } catch (err) { alert("Connection Error. Use GitHub Pages or a CORS extension."); }
         }
 
         function updateOutput() {
             let ansi = "";
             const mod = state.currentModule;
             if (mod === 'bulletin') {
-                const colors = { info: " [1;34m", event: " [1;32m", alert: " [1;31m" };
-                const c = colors[document.getElementById('bul-urg')?.value || 'info'];
-                ansi = `\`\`\`ansi\n${c}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓ [0m\n${c}┃   NEWS: ${getVal('bul-title').toUpperCase().padEnd(33)}┃ [0m\n${c}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ [0m\n\n${getVal('bul-msg')}\n\`\`\``;
-            } else if (mod === 'ledger' || mod === 'rp-info') {
-                ansi = `\`\`\`ansi\n [1;33m🌿 INK AND EMBER HIERARCHY [0m\n`;
-                state.ledger.forEach(m => { ansi += ` [1;37m${m.name.padEnd(12)} [0m  [1;30m| [0m  [1;34m${m.role} [0m\n`; });
-                ansi += `\`\`\``;
+                ansi = `\`\`\`ansi\n [1;34m📢 BULLETIN: ${getVal('bul-title').toUpperCase()} [0m\n${getVal('bul-msg')}\n\`\`\``;
+            } else if (mod === 'ledger') {
+                ansi = `\`\`\`ansi\n [1;33m🌿 COMPANY ROSTER [0m\n` + state.ledger.map(m => ` [1;37m${m.name.padEnd(12)} [0m | ${m.role}`).join('\n') + `\`\`\``;
             } else if (mod === 'contract') {
-                ansi = `\`\`\`ansi\n [1;33m[ TRADE CONTRACT ] [0m\n [1;34mMerchant: [0m ${getVal('m-name')}\n [1;32mManifest: [0m\n${getVal('m-manifest')}\n\`\`\``;
+                ansi = `\`\`\`ansi\n [1;32m📜 CONTRACT: ${getVal('m-name')} [0m\n${getVal('m-manifest')}\n\`\`\``;
             }
-            document.getElementById('discord-preview').innerText = ansi || "Module previewed as Rich Embed only.";
+            document.getElementById('discord-preview').innerText = ansi || "Rich Embed Mode Active (Preview in Discord)";
         }
 
         function getVal(id) { return document.getElementById(id)?.value || "---"; }
         function copyDiscordCode() { navigator.clipboard.writeText(document.getElementById('discord-preview').innerText); alert("ANSI Copied!"); }
 
-        render();
-        
-        // --- SOUND ENGINE ---
         let audioCtx = null;
-        function initAudioContext() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-        }
         function playClickSound() {
-            initAudioContext();
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             const audio = new Audio('https://static.wixstatic.com/mp3/27bdae_d39df76a7044438fb650577244adfdfa.wav');
-            audio.volume = 0.2;
-            audio.play().catch(e => { console.log("Audio play blocked."); });
+            audio.volume = 0.2; audio.play().catch(()=>{});
         }
-        document.addEventListener('click', (e) => {
-            if (e.target.tagName === 'BUTTON' || e.target.closest('li')) {
-                playClickSound();
-            }
-        });
+        document.addEventListener('click', (e) => { if (e.target.tagName === 'BUTTON' || e.target.closest('li')) playClickSound(); });
+        render();
     </script>
 </body>
 </html>
