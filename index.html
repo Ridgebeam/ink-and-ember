@@ -122,22 +122,20 @@
                 </ul>
             </div>
             
-<div class="card">
-    <h4 style="color: var(--gold); margin-top: 0; font-size: 0.9rem; border-bottom: 1px solid var(--ember); padding-bottom: 5px;">The Merchant's Kit</h4>
-    
-    <label>Recommended Plugins</label>
-    <ul class="res-list">
-        <li><a href="https://www.lotrointerface.com/downloads/info361-BuffBars.html" target="_blank">💪 BuffBars</a></li>
-        <li><a href="https://www.lotrointerface.com/downloads/info1085-PrimePlugin.html" target="_blank">💰 PrimePlugin</a></li>
-        <li><a href="https://www.lotrointerface.com/downloads/info532-MoorMap.html" target="_blank">🗺️ MoorMap</a></li>
-    </ul>
-
-    <label style="margin-top: 15px;">UI Layouts</label>
-    <ul class="res-list">
-        <li><a href="#" onclick="alert('Layout file coming soon!')">🎨 Talathlans Layout</a></li>
-        <li><a href="#" onclick="alert('Layout file coming soon!')">📥 Standard Merchant UI</a></li>
-    </ul>
-</div>
+            <div class="card">
+                <h4 style="color: var(--gold); margin-top: 0; font-size: 0.9rem; border-bottom: 1px solid var(--ember); padding-bottom: 5px;">The Merchant's Kit</h4>
+                <label>Recommended Plugins</label>
+                <ul class="res-list">
+                    <li><a href="https://www.lotrointerface.com/downloads/info361-BuffBars.html" target="_blank">💪 BuffBars</a></li>
+                    <li><a href="https://www.lotrointerface.com/downloads/info1085-PrimePlugin.html" target="_blank">💰 PrimePlugin</a></li>
+                    <li><a href="https://www.lotrointerface.com/downloads/info532-MoorMap.html" target="_blank">🗺️ MoorMap</a></li>
+                </ul>
+                <label style="margin-top: 15px;">UI Layouts</label>
+                <ul class="res-list">
+                    <li><a href="#" onclick="alert('Layout file coming soon!')">🎨 Talathlans Layout</a></li>
+                    <li><a href="#" onclick="alert('Layout file coming soon!')">📥 Standard Merchant UI</a></li>
+                </ul>
+            </div>
         </aside>
 
         <section>
@@ -155,7 +153,6 @@
     </main>
 
     <script>
-        // --- DATA STATE (ALL ORIGINAL DATA PRESERVED) ---
         const initialLedger = [
             { name: "Oghuz", role: "Grandmaster of Trade" },
             { name: "Furkz", role: "Regional Director (Rohan)" },
@@ -223,7 +220,6 @@
             updateOutput();
         }
 
-        // --- ORIGINAL LEDGER LOGIC (PRESERVED) ---
         function renderLedgerList() {
             const search = document.getElementById('ledger-search')?.value.toLowerCase() || "";
             const list = document.getElementById('ledger-items');
@@ -237,58 +233,77 @@
             if(name && role) { state.ledger.push({name, role}); localStorage.setItem('ie_roster', JSON.stringify(state.ledger)); render(); }
         }
         function deleteMember(i) { state.ledger.splice(i, 1); localStorage.setItem('ie_roster', JSON.stringify(state.ledger)); render(); }
+        
         function saveSettings() {
             state.webhook = document.getElementById('webhook-url').value;
             localStorage.setItem('ie_webhook', state.webhook);
             alert("Webhook Saved!");
         }
 
-        // NEW: Rich Embed Dispatcher
-  async function dispatchToDiscord() {
-    if (!data.profile.webhookUrl) {
-        alert("Please enter a Discord Webhook URL in the 'Technical' panel first.");
-        showPanel('technical', document.querySelector('[onclick*="technical"]'));
-        return;
-    }
+        // --- UPDATED DISPATCHER FOR MERCHANT PORTAL ---
+        async function dispatchToDiscord() {
+            if (!state.webhook) {
+                alert("Please enter a Discord Webhook URL in Connection Settings first.");
+                showModule('settings');
+                return;
+            }
 
-    const { profile: p, role: r, stats: s } = data;
-    const payload = {
-        username: "The Scholar's Archive",
-        avatar_url: "https://imgur.com/iAEONaH.jpeg",
-        embeds: [{
-            title: `📜 Ledger Record: ${p.name}`,
-            description: p.bio ? p.bio.substring(0, 500) : "No history recorded.",
-            thumbnail: { url: p.img || "https://via.placeholder.com/120" },
-            color: 12951641,
-            fields: [
-                { name: "Identity", value: `Level ${p.level} ${p.race} ${p.class}`, inline: true },
-                { name: "Rank", value: `${r.hierarchy} ${r.title}`, inline: true },
-                { name: "Status", value: `📍 ${p.status || 'Active'}`, inline: true },
-                { 
-                    name: "⚔️ Attributes", 
-                    value: `\`MGT: ${s.MGT}\` | \`AGI: ${s.AGI}\` | \`VIT: ${s.VIT}\` | \`WIL: ${s.WIL}\` | \`FAT: ${s.FAT}\``,
-                    inline: false 
-                }
-            ],
-            footer: { text: "Ink & Ember Mercantile Official Record" },
-            timestamp: new Date().toISOString()
-        }]
-    };
+            let payload = {
+                username: "Ink & Ember Mercantile",
+                avatar_url: "https://imgur.com/iAEONaH.jpeg",
+                embeds: [{
+                    color: 14833698, // Ember color
+                    timestamp: new Date().toISOString(),
+                    footer: { text: "Ink & Ember Mercantile Official Portal" }
+                }]
+            };
 
-    try {
-        const response = await fetch(p.webhookUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        if (response.ok) alert("Dossier successfully transmitted to Discord!");
-        else alert("Discord error: Check if your Webhook URL is correct.");
-    } catch (err) {
-        alert("CORS/Connection Error. Browsers often block Webhooks from local files. Try using a CORS-unblocker extension or a Proxy.");
-    }
-  }
+            const mod = state.currentModule;
+            const embed = payload.embeds[0];
 
-        // --- ORIGINAL PREVIEW LOGIC (PRESERVED) ---
+            // Logic to build the embed based on the active module
+            if (mod === 'bulletin') {
+                embed.title = `📢 Bulletin: ${getVal('bul-title')}`;
+                embed.description = getVal('bul-msg');
+                embed.fields = [{ name: "Urgency", value: document.getElementById('bul-urg').value.toUpperCase() }];
+            } else if (mod === 'ledger') {
+                embed.title = `🖋️ Company Roster Update`;
+                embed.description = state.ledger.map(m => `**${m.name}** - ${m.role}`).join('\n');
+            } else if (mod === 'contract') {
+                embed.title = `📜 New Trade Contract`;
+                embed.fields = [
+                    { name: "Merchant", value: getVal('m-name'), inline: true },
+                    { name: "Manifest", value: getVal('m-manifest') }
+                ];
+            } else if (mod === 'storefront') {
+                embed.title = `🏪 Storefront Listing`;
+                embed.fields = [
+                    { name: "Item", value: getVal('st-item'), inline: true },
+                    { name: "Price", value: getVal('st-price'), inline: true },
+                    { name: "Quality", value: document.getElementById('st-qual').value }
+                ];
+            } else if (mod === 'off-screen') {
+                embed.title = `🕯️ Off-Screen Narrative Hook`;
+                embed.description = getVal('os-hook');
+                embed.fields = [{ name: "Location", value: getVal('os-loc') }];
+            } else {
+                alert("This module cannot be dispatched as a Rich Embed.");
+                return;
+            }
+
+            try {
+                const response = await fetch(state.webhook, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (response.ok) alert("Module successfully dispatched to Discord!");
+                else alert("Discord error: Check your Webhook URL.");
+            } catch (err) {
+                alert("CORS Error. Use a CORS-unblocker extension or host this on GitHub Pages.");
+            }
+        }
+
         function updateOutput() {
             let ansi = "";
             const mod = state.currentModule;
@@ -303,7 +318,7 @@
             } else if (mod === 'contract') {
                 ansi = `\`\`\`ansi\n [1;33m[ TRADE CONTRACT ] [0m\n [1;34mMerchant: [0m ${getVal('m-name')}\n [1;32mManifest: [0m\n${getVal('m-manifest')}\n\`\`\``;
             }
-            document.getElementById('discord-preview').innerText = ansi || "Module not previewable in ANSI mode.";
+            document.getElementById('discord-preview').innerText = ansi || "Module previewed as Rich Embed only.";
         }
 
         function getVal(id) { return document.getElementById(id)?.value || "---"; }
@@ -312,32 +327,22 @@
         render();
         
         // --- SOUND ENGINE ---
-let audioCtx = null;
-
-function initAudioContext() {
-    // Initializes the audio context only after a user gesture to bypass browser security
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-}
-
-function playClickSound() {
-    initAudioContext();
-    // UPDATE THE URL BELOW TO CHANGE THE .WAV FILE
-    const audio = new Audio('https://static.wixstatic.com/mp3/27bdae_d39df76a7044438fb650577244adfdfa.wav');
-    audio.volume = 0.2;
-    audio.play().catch(e => { console.log("Audio play blocked until user interaction."); });
-}
-
-// Global listener: plays sound whenever a button or navigation item is clicked
-document.addEventListener('click', (e) => {
-    if (e.target.tagName === 'BUTTON' || e.target.closest('li')) {
-        playClickSound();
-    }
-});
+        let audioCtx = null;
+        function initAudioContext() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+        function playClickSound() {
+            initAudioContext();
+            const audio = new Audio('https://static.wixstatic.com/mp3/27bdae_d39df76a7044438fb650577244adfdfa.wav');
+            audio.volume = 0.2;
+            audio.play().catch(e => { console.log("Audio play blocked."); });
+        }
+        document.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON' || e.target.closest('li')) {
+                playClickSound();
+            }
+        });
     </script>
 </body>
 </html>
-
-
-
-
