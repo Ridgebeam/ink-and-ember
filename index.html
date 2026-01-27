@@ -73,7 +73,7 @@
             color: #d1d1d1; font-size: 0.85rem; margin-top: 1rem; border-radius: 4px;
         }
 
-        .btn-flex { display: flex; gap: 10px; margin-top: 0.5rem; }
+        .btn-flex { display: flex; gap: 10px; margin-top: 0.5rem; flex-wrap: wrap; }
         .copy-btn {
             background: #333; color: white; border: none; padding: 0.8rem;
             flex: 1; font-weight: bold; cursor: pointer; text-transform: uppercase; border-radius: 4px;
@@ -82,7 +82,11 @@
             background: #5865F2; color: white; border: none; padding: 0.8rem;
             flex: 2; font-weight: bold; cursor: pointer; text-transform: uppercase; border-radius: 4px;
         }
-        .copy-btn:hover, .dispatch-btn:hover { filter: brightness(1.2); }
+        .clear-btn {
+            background: #8b0000; color: white; border: none; padding: 0.8rem;
+            flex: 1; font-weight: bold; cursor: pointer; text-transform: uppercase; border-radius: 4px;
+        }
+        .copy-btn:hover, .dispatch-btn:hover, .clear-btn:hover { filter: brightness(1.2); }
 
         .theme-toggle { position: absolute; top: 15px; right: 15px; background: transparent; border: 1px solid var(--gold); color: var(--gold); padding: 5px 10px; cursor: pointer; border-radius: 4px; }
 
@@ -92,6 +96,7 @@
         .res-list { list-style: none; padding: 0; margin: 0; }
         .res-list li { font-size: 0.85rem; margin-bottom: 8px; border-bottom: 1px solid #222; padding-bottom: 4px; }
         .res-list a { color: var(--text); text-decoration: none; transition: 0.2s; }
+        .res-list a:hover { color: var(--gold); }
     </style>
 </head>
 <body>
@@ -124,6 +129,7 @@
             <div class="card">
                 <h4 style="color: var(--gold); margin-top: 0; font-size: 0.9rem; border-bottom: 1px solid var(--ember); padding-bottom: 5px;">The Merchant's Kit</h4>
                 <ul class="res-list">
+                    <li><a href="#" target="_blank">🖥 Comin Soon: UI Layout</a></li>
                     <li><a href="https://www.lotrointerface.com/downloads/info361-BuffBars.html" target="_blank">💪 BuffBars</a></li>
                     <li><a href="https://www.lotrointerface.com/downloads/info1085-PrimePlugin.html" target="_blank">💰 PrimePlugin</a></li>
                     <li><a href="https://www.lotrointerface.com/downloads/info532-MoorMap.html" target="_blank">🗺️ MoorMap</a></li>
@@ -140,6 +146,7 @@
                 <div class="btn-flex">
                     <button class="copy-btn" onclick="copyDiscordCode()">Copy Raw ANSI</button>
                     <button class="dispatch-btn" onclick="dispatchToDiscord()">🚀 Dispatch Rich Embed</button>
+                    <button class="clear-btn" onclick="clearCurrentForm()">🗑️ Clear Form</button>
                 </div>
             </div>
         </section>
@@ -186,7 +193,7 @@
             } else if (mod === 'storefront') {
                 display.innerHTML = `<h2>Storefront</h2><div class="input-group"><label>Item</label><input type="text" id="st-item" oninput="updateOutput()"></div><div class="input-group"><label>Quality</label><select id="st-qual" onchange="updateOutput()"><option value="Standard">Standard</option><option value="Critical Success">Critical Success</option></select></div><div class="input-group"><label>Price</label><input type="text" id="st-price" oninput="updateOutput()"></div>`;
             } else if (mod === 'orders') {
-                display.innerHTML = `<h2>Customer Orders</h2><div class="input-group"><label>Client</label><input type="text" id="o-client" oninput="updateOutput()"></div><div class="input-group"><label>Order Details</label><textarea id="o-details" rows="4" oninput="updateOutput()"></textarea></div>`;
+                display.innerHTML = `<h2>📦 Customer Orders</h2><div class="input-group"><label>Client</label><input type="text" id="o-client" oninput="updateOutput()"></div><div class="input-group"><label>Order Details</label><textarea id="o-details" rows="4" oninput="updateOutput()"></textarea></div>`;
             } else if (mod === 'rp-info') {
                 display.innerHTML = `<h2>💡 RP Information</h2><div class="input-group"><label>Subject</label><input type="text" id="rp-topic" oninput="updateOutput()"></div><div class="input-group"><label>Details</label><textarea id="rp-body" rows="4" oninput="updateOutput()"></textarea></div>`;
             } else if (mod === 'off-screen') {
@@ -210,6 +217,12 @@
         function deleteMember(i) { state.ledger.splice(i, 1); localStorage.setItem('ie_roster', JSON.stringify(state.ledger)); render(); }
         function saveSettings() { state.webhook = document.getElementById('webhook-url').value; localStorage.setItem('ie_webhook', state.webhook); alert("Webhook Saved!"); }
 
+        function clearCurrentForm() {
+            const inputs = document.querySelectorAll('#active-module input, #active-module textarea');
+            inputs.forEach(input => input.value = '');
+            updateOutput();
+        }
+
         async function dispatchToDiscord() {
             if (!state.webhook) { alert("Please set a Webhook in Connection Settings."); return; }
             let payload = { username: "Ink & Ember Mercantile", avatar_url: "https://imgur.com/iAEONaH.jpeg", embeds: [{ color: 14833698, timestamp: new Date().toISOString(), footer: { text: "Official Company Record" } }] };
@@ -225,15 +238,18 @@
             } else if (mod === 'contract') {
                 embed.title = `📜 Trade Contract: ${getVal('m-name')}`;
                 embed.description = getVal('m-manifest');
+                embed.color = 12951641; // Gold
             } else if (mod === 'storefront') {
                 embed.title = `🏪 Storefront: ${getVal('st-item')}`;
                 embed.fields = [{name: "Price", value: getVal('st-price'), inline: true}, {name: "Quality", value: getVal('st-qual'), inline: true}];
             } else if (mod === 'orders') {
                 embed.title = `📦 New Order for ${getVal('o-client')}`;
                 embed.description = getVal('o-details');
+                embed.color = 3447003; // Blue
             } else if (mod === 'rp-info') {
                 embed.title = `💡 Lore Note: ${getVal('rp-topic')}`;
                 embed.description = getVal('rp-body');
+                embed.color = 10181046; // Purple
             } else if (mod === 'off-screen') {
                 embed.title = `🕯️ Off-Screen RP Hook`;
                 embed.description = getVal('os-hook');
